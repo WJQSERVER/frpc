@@ -91,18 +91,46 @@ tar -zxvf ${FILE_NAME}.tar.gz
 mkdir -p ${FRP_PATH}
 mv ${FILE_NAME}/${FRP_NAME} ${FRP_PATH}
 
+#连接端口
+default_linkport=7000
+read -p "请输入端口号（默认为$default_linkport）: " linkport
+linkport=${linkport:-$default_linkport}
+if ! [[ "$linkport" =~ ^[0-9]+$ ]] || [ "$linkport" -lt 1 ] || [ "$linkport" -gt 65535 ]; then
+  echo "端口号不在正常范围内，将使用默认端口号 $default_linkport。"
+  linkport=$default_linkport
+fi
+
+# 入站IP
+default_ip="0.0.0.0"
+read -p "请输入入站IP地址（默认为 $default_ip）: " ip
+ip=${ip:-$default_ip}
+ip_pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"
+if ! [[ "$ip" =~ $ip_pattern ]]; then
+  echo "IP地址不合法，将使用默认IP地址 $default_ip。"
+  ip=$default_ip
+fi
+
+#密钥
+read -p "请输入Token鉴权:" token
+
 # configure frpc.ini
 cat >${FRP_PATH}/${FRP_NAME}.ini <<EOF
 [common]
-server_addr = frp.freefrp.net
-server_port = 7000
-token = freefrp.net
+server_addr = $ip #FRPS服务器地址
+server_port = $linkport #FRPS连接端口
+token = $token #FRPS鉴权Token
 
-[web1_${RANDOM}]
-type = http
-local_ip = 192.168.1.2
-local_port = 5000
-custom_domains = yourdomain${RANDOM}.com
+[web1_xxxxx] #隧道名称(不可与其他用户的隧道名相同，会导致冲突)
+type = http #穿透类型
+local_ip = 192.168.1.2 #本地地址
+local_port = 5000 #本地端口
+custom_domains = yourdomain.com #绑定域名
+
+[tcp1_xxxxx]
+type = tcp #穿透类型
+local_ip = 192.168.1.2 #本地地址
+local_port = 22 #本地端口
+remote_port = 52222 #远程端口
 EOF
 
 # configure systemd
