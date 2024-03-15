@@ -134,7 +134,7 @@ remote_port = 52222 #远程端口
 EOF
 
 # configure systemd
-cat >/lib/systemd/system/${FRP_NAME}.service <<EOF
+cat >/lib/systemd/system/frpc.service <<EOF
 [Unit]
 Description=Frp Server Service
 After=network.target syslog.target
@@ -144,7 +144,7 @@ Wants=network.target
 Type=simple
 Restart=on-failure
 RestartSec=5s
-ExecStart=/usr/local/frp/frpc -c /usr/local/frp/${FRP_NAME}.ini
+ExecStart=/root/data/frpc/frpc -c /root/data/frpc/frpc.ini
 
 [Install]
 WantedBy=multi-user.target
